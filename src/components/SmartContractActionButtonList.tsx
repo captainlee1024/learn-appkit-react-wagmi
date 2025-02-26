@@ -163,9 +163,13 @@ const tokenBankABI = [
 
 const tokenBankSC = "0xbEb8Ba33F71274a33Fe4ae3fD9636a2aDbe0D958";
 
-const storageSC = "0xEe6D291CC60d7CeD6627fA4cd8506912245c8cA4" 
+const storageSC = "0xEe6D291CC60d7CeD6627fA4cd8506912245c8cA4"
 
-export const SmartContractActionButtonList = () => {
+interface SmartContractActionButtonListProps {
+    sendErc20Balance: (erc20Balance: string) => void;
+}
+
+export const SmartContractActionButtonList = ({sendErc20Balance} :SmartContractActionButtonListProps) => {
     const { isConnected } = useAppKitAccount() // AppKit hook to get the address and check if the user is connected
     const { chainId } = useAppKitNetwork()
     const { writeContract, isSuccess } = useWriteContract()
@@ -213,7 +217,9 @@ export const SmartContractActionButtonList = () => {
     const handleReadBankUserBalance = async () => {
         console.log("Read Bank ERC20 Token Balance")
         const { data } = await readBank.refetch();
-        alert(`ERC20 Balance:  ${data}`);
+        // alert(`ERC20 Balance:  ${data}`);
+        sendErc20Balance(data?.toString()+"ERC20");
+        // sendErc20Balance(balance?.data?.value.toString() + " " + balance?.data?.symbol.toString())
     }
 
 

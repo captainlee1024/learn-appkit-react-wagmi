@@ -36,6 +36,7 @@ export function App() {
   const [transactionHash, setTransactionHash] = useState<`0x${string}` | undefined>(undefined);
   const [signedMsg, setSignedMsg] = useState('');
   const [balance, setBalance] = useState('');
+  const [erc20Balance, setErc20Balance] = useState('');
 
   const receiveHash = (hash: `0x${string}`) => {
     setTransactionHash(hash); // Update the state with the transaction hash
@@ -49,6 +50,10 @@ export function App() {
     setBalance(balance)
   }
 
+  const receiveErc20Balance = (erc20Balance: string) => {
+    setErc20Balance(erc20Balance)
+  }
+
 
   return (
     <div className={"pages"}>
@@ -60,14 +65,14 @@ export function App() {
             {/*<w3m-button></w3m-button>*/}
             {/*<w3m-button/>*/}
             <ActionButtonList sendHash={receiveHash} sendSignMsg={receiveSignedMsg} sendBalance={receivebalance}/>
-            <SmartContractActionButtonList />
+            <SmartContractActionButtonList sendErc20Balance={receiveErc20Balance}/>
             <div className="advice">
               <p>
                 This projectId only works on localhost. <br/>
                 Go to <a href="https://cloud.reown.com" target="_blank" className="link-button" rel="Reown Cloud">Reown Cloud</a> to get your own.
               </p>
             </div>
-            <InfoList hash={transactionHash} signedMsg={signedMsg} balance={balance}/>
+            <InfoList hash={transactionHash} signedMsg={signedMsg} balance={balance} erc20Balance={erc20Balance}/>
         </QueryClientProvider>
       </WagmiProvider>
     </div>

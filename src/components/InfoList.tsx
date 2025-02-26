@@ -12,9 +12,10 @@ interface InfoListProps {
     hash: `0x${string}` | undefined;
     signedMsg: string;
     balance: string;
+    erc20Balance: string;
 }
 
-export const InfoList = ({ hash, signedMsg, balance }: InfoListProps) => {
+export const InfoList = ({ hash, signedMsg, balance, erc20Balance }: InfoListProps) => {
     const kitTheme = useAppKitTheme(); // AppKit hook to get the theme information and theme actions 
     const state = useAppKitState(); // AppKit hook to get the state
     const {address, caipAddress, isConnected, status, embeddedWalletInfo } = useAppKitAccount(); // AppKit hook to get the account information
@@ -39,6 +40,11 @@ export const InfoList = ({ hash, signedMsg, balance }: InfoListProps) => {
         <section>
             <h2>Balance: {balance}</h2>
         </section>
+        )}
+        {erc20Balance && (
+            <section>
+                <h2>ERC20 Balance: {erc20Balance}</h2>
+            </section>
         )}
         {hash && (
         <section>
