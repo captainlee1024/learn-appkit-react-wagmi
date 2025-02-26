@@ -37,6 +37,10 @@ export function App() {
   const [signedMsg, setSignedMsg] = useState('');
   const [balance, setBalance] = useState('');
   const [erc20Balance, setErc20Balance] = useState('');
+  const [signR, setSignR] = useState<`0x${string}`>("0x");
+  const [signS, setSignS] = useState<`0x${string}`>("0x");
+  const [signV, setSignV] = useState(0n);
+  const [timestep, setTimestep] = useState(0n);
 
   const receiveHash = (hash: `0x${string}`) => {
     setTransactionHash(hash); // Update the state with the transaction hash
@@ -54,8 +58,15 @@ export function App() {
     setErc20Balance(erc20Balance)
   }
 
+  const receiveRSV = (signR: `0x${string}`, signS: `0x${string}`, v: bigint, timestep: bigint) => {
+      setSignR(signR);
+      setSignS(signS);
+      setSignV(v);
+      setTimestep(timestep);
+  };
 
-  return (
+
+    return (
     <div className={"pages"}>
       <img src="/reown.svg" alt="Reown" style={{ width: '150px', height: '150px' }} />
       <h1>AppKit Wagmi React dApp Example</h1>
@@ -64,8 +75,8 @@ export function App() {
             <appkit-button />
             {/*<w3m-button></w3m-button>*/}
             {/*<w3m-button/>*/}
-            <ActionButtonList sendHash={receiveHash} sendSignMsg={receiveSignedMsg} sendBalance={receivebalance}/>
-            <SmartContractActionButtonList sendErc20Balance={receiveErc20Balance}/>
+            <ActionButtonList sendHash={receiveHash} sendSignMsg={receiveSignedMsg} sendBalance={receivebalance} sendRSV={receiveRSV}/>
+            <SmartContractActionButtonList sendErc20Balance={receiveErc20Balance} signR={signR} signS={signS} signV={signV} deadline={timestep}/>
             <div className="advice">
               <p>
                 This projectId only works on localhost. <br/>

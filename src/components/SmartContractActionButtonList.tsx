@@ -161,18 +161,136 @@ const tokenBankABI = [
     }
 ]
 
+const terryTokenBankABI = [
+    {
+        "inputs": [
+            {
+                "internalType": "contract ERC20Permit",
+                "name": "_tToken",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "Balance",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "deposit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint8",
+                "name": "v",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+            }
+        ],
+        "name": "depositWithPermit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "tToken",
+        "outputs": [
+            {
+                "internalType": "contract ERC20Permit",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "withdraw",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]
+
+const terryTokenBankSC = "0xA54ddB49f572472b3dCC2786f39dB636eEc26e41";
+
+// const terryTokenSC = "0x2A9c77C40f651e0B92797bB92C28BA40214f979C";
+
 const tokenBankSC = "0xbEb8Ba33F71274a33Fe4ae3fD9636a2aDbe0D958";
 
 const storageSC = "0xEe6D291CC60d7CeD6627fA4cd8506912245c8cA4"
 
 interface SmartContractActionButtonListProps {
     sendErc20Balance: (erc20Balance: string) => void;
+    signR: `0x${string}`;
+    signS: `0x${string}`;
+    signV: bigint;
+    deadline: bigint;
 }
 
-export const SmartContractActionButtonList = ({sendErc20Balance} :SmartContractActionButtonListProps) => {
+export const SmartContractActionButtonList = ({sendErc20Balance, signR, signS, signV, deadline} :SmartContractActionButtonListProps) => {
     const { isConnected } = useAppKitAccount() // AppKit hook to get the address and check if the user is connected
     const { chainId } = useAppKitNetwork()
-    const { writeContract, isSuccess } = useWriteContract()
+    const { writeContract, isSuccess, status, error } = useWriteContract()
     const readContract = useReadContract({
       address: storageSC,
       abi: storageABI,
@@ -186,7 +304,13 @@ export const SmartContractActionButtonList = ({sendErc20Balance} :SmartContractA
       if (isSuccess) {
         console.log("contract write success");
       }
-    }, [isSuccess])
+      if (status !== null) {
+          console.log(status)
+      }
+      if (error !== null) {
+          console.log(error)
+      }
+    }, [isSuccess, status, error])
 
     const handleReadSmartContract = async () => {
       console.log("Read Sepolia Smart Contract");
@@ -201,6 +325,21 @@ export const SmartContractActionButtonList = ({sendErc20Balance} :SmartContractA
           abi: storageABI,
           functionName: 'store',
           args: [123n],
+        })
+    }
+
+    const handleWriteBankWithERC20Permit = () => {
+        console.log("Write Bank With ERC20Permit")
+        console.log(signR, signS, signV, deadline);
+
+        // try {
+        //
+        // }
+        writeContract({
+            address: terryTokenBankSC,
+            abi: terryTokenBankABI,
+            functionName: 'depositWithPermit',
+            args: ["0xD0148b6eB2471F86126Cfe4c4716ab71889131ff", 100n, deadline, signV, signR, signS],
         })
     }
 
@@ -229,6 +368,7 @@ export const SmartContractActionButtonList = ({sendErc20Balance} :SmartContractA
         <button onClick={handleReadSmartContract}>Read Sepolia Smart Contract</button>
         <button onClick={handleWriteSmartContract}>Write Sepolia Smart Contract</button>
         <button onClick={handleReadBankUserBalance}>Read Bank ERC20 Token Balance</button>
+        <button onClick={handleWriteBankWithERC20Permit}>Write Bank With ERC20Permit</button>
     </div>
     )
   )

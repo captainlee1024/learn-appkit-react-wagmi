@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDisconnect, useAppKit, useAppKitNetwork, useAppKitAccount  } from '@reown/appkit/react'
-import { parseGwei, type Address } from 'viem'
-import { useEstimateGas, useSendTransaction, useSignMessage, useBalance } from 'wagmi'
+import {parseGwei, type Address, parseSignature} from 'viem'
+import {useEstimateGas, useSendTransaction, useSignMessage, useBalance, useSignTypedData} from 'wagmi'
 import { networks } from '../config'
 
 // test transaction
@@ -14,9 +14,10 @@ interface ActionButtonListProps {
   sendHash: (hash: `0x${string}` ) => void;
   sendSignMsg: (hash: string) => void;
   sendBalance: (balance: string) => void;
+  sendRSV: (r: `0x${string}`, s: `0x${string}`, v: bigint, timestep: bigint) => void;
 }
 
-export const ActionButtonList = ({ sendHash, sendSignMsg, sendBalance }: ActionButtonListProps) => {
+export const ActionButtonList = ({ sendHash, sendSignMsg, sendBalance, sendRSV }: ActionButtonListProps) => {
     const { disconnect } = useDisconnect(); // AppKit hook to disconnect
     const { open } = useAppKit(); // AppKit hook to open the modal
     const { switchNetwork } = useAppKitNetwork(); // AppKithook to switch network
@@ -25,6 +26,7 @@ export const ActionButtonList = ({ sendHash, sendSignMsg, sendBalance }: ActionB
     const { data: gas } = useEstimateGas({...TEST_TX}); // Wagmi hook to estimate gas
     const { data: hash, sendTransaction, } = useSendTransaction(); // Wagmi hook to send a transaction
     const { signMessageAsync } = useSignMessage() // Wagmi hook to sign a message
+    const { signTypedDataAsync } = useSignTypedData() // Wagmi hook to sign typed data
     const { refetch } = useBalance({
       address: address as Address
     }); // Wagmi hook to get the balance
@@ -49,10 +51,46 @@ export const ActionButtonList = ({ sendHash, sendSignMsg, sendBalance }: ActionB
     }
 
     // function to sing a msg 
+    const handleSignTypedData = async () => {
+      const currentTime = new Date();
+      const nextDay = new Date(currentTime.getTime() + 24 * 60 * 60 * 1000);
+      const timeStep = BigInt(nextDay.getTime());
+      const sig = await signTypedDataAsync({
+        domain: {
+            name: "TerryToken",
+            version: "1",
+            chainId: 11155111,
+            verifyingContract: "0x41EeE89e29d66Dada344BE25F87C355F76fdE051"
+        },
+        types: {
+            Permit: [
+                { name: 'owner', type: 'address' },
+                { name: 'spender', type: 'address' },
+                { name: 'value', type: 'uint256' },
+                { name: 'nonce', type: 'uint256' },
+                { name: 'deadline', type: 'uint256' },
+            ]
+        },
+          primaryType: 'Permit',
+          message: {
+            owner: address as Address,
+            spender: "0xA54ddB49f572472b3dCC2786f39dB636eEc26e41",
+            value: 100n,
+            nonce: 0n,
+            deadline: timeStep,// 1 hour from now
+          },
+      });
+      const {r, s, v} = parseSignature(sig);
+      console.log(r, s, v, timeStep);
+      sendRSV(r,s, typeof v === "bigint" ? v : 0n, timeStep);
+      // sendRSV(r,s, v, timeStep);
+    }
+
+    // function to sing a msg
     const handleSignMsg = async () => {
-      const msg = "Hello Reown AppKit!" // message to sign
-      const sig = await signMessageAsync({ message: msg, account: address as Address }); 
-      sendSignMsg(sig);
+        const msg = "Hello Reown AppKit!" // message to sign
+        const sig = await signMessageAsync({ message: msg, account: address as Address });
+        sendSignMsg(sig);
     }
 
     // function to get the balance
@@ -77,6 +115,7 @@ export const ActionButtonList = ({ sendHash, sendSignMsg, sendBalance }: ActionB
         <button onClick={handleDisconnect}>Disconnect</button>
         <button onClick={() => switchNetwork(networks[1]) }>Switch</button>
         <button onClick={handleSignMsg}>Sign msg</button>
+        <button onClick={handleSignTypedData}>Sign Typed Data</button>
         <button onClick={handleSendTx}>Send tx</button>
         <button onClick={handleGetBalance}>Get Balance</button>
     </div>
