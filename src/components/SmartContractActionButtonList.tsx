@@ -328,13 +328,10 @@ export const SmartContractActionButtonList = ({sendErc20Balance, signR, signS, s
         })
     }
 
-    const handleWriteBankWithERC20Permit = () => {
+    const handleWriteBankWithERC20Permit = async () => {
         console.log("Write Bank With ERC20Permit")
         console.log(signR, signS, signV, deadline);
 
-        // try {
-        //
-        // }
         writeContract({
             address: terryTokenBankSC,
             abi: terryTokenBankABI,

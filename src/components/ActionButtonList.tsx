@@ -3,6 +3,7 @@ import { useDisconnect, useAppKit, useAppKitNetwork, useAppKitAccount  } from '@
 import {parseGwei, type Address, parseSignature} from 'viem'
 import {useEstimateGas, useSendTransaction, useSignMessage, useBalance, useSignTypedData} from 'wagmi'
 import { networks } from '../config'
+import { useReadContract } from 'wagmi'
 
 // test transaction
 const TEST_TX = {
@@ -30,6 +31,35 @@ export const ActionButtonList = ({ sendHash, sendSignMsg, sendBalance, sendRSV }
     const { refetch } = useBalance({
       address: address as Address
     }); // Wagmi hook to get the balance
+    const readPermitTokenNonce = useReadContract({
+        address: "0x41EeE89e29d66Dada344BE25F87C355F76fdE051",
+        abi: [
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    }
+                ],
+                "name": "nonces",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+        ],
+        functionName: 'nonces',
+        args: [address as Address],
+        query: {
+            enabled: false, // disable the query in onload
+        }
+    })
 
     
     useEffect(() => {
@@ -55,6 +85,8 @@ export const ActionButtonList = ({ sendHash, sendSignMsg, sendBalance, sendRSV }
       const currentTime = new Date();
       const nextDay = new Date(currentTime.getTime() + 24 * 60 * 60 * 1000);
       const timeStep = BigInt(nextDay.getTime());
+      const {data} = await readPermitTokenNonce.refetch();
+      const permitNonce: bigint = (data !== undefined)?data : 0n;
       const sig = await signTypedDataAsync({
         domain: {
             name: "TerryToken",
@@ -76,7 +108,8 @@ export const ActionButtonList = ({ sendHash, sendSignMsg, sendBalance, sendRSV }
             owner: address as Address,
             spender: "0xA54ddB49f572472b3dCC2786f39dB636eEc26e41",
             value: 100n,
-            nonce: 0n,
+            // nonce: 0n,
+            nonce: permitNonce,
             deadline: timeStep,// 1 hour from now
           },
       });
